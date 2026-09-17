@@ -2,8 +2,11 @@
 /**
  * 共享侧边栏：所有页面复用同一套导航分组，保证路由切换时视觉和入口保持一致。
  */
+import { ref } from 'vue';
+
 defineProps({ activeRoute: { type: String, required: true } });
 const emit = defineEmits(['navigate', 'open-theme']);
+const collapsed = ref(false);
 
 const navGroups = [
   { title: '总览', items: [['today', '今日', '⌁'], ['wishlist', '心愿清单', '♡'], ['summary', '账本', '▥'], ['accidents', '意外收支', '＄']] },
@@ -14,16 +17,21 @@ const navGroups = [
 function navigate(route) {
   emit('navigate', route);
 }
+
+/** 折叠侧栏以给窄屏或专注阅读模式留出更多主内容空间。 */
+function toggleCollapsed() {
+  collapsed.value = !collapsed.value;
+}
 </script>
 
 <template>
-  <aside class="sidebar">
-    <div class="brand-row"><div class="brand-icon">⌁</div><div><strong>MoneyDance</strong><small>TIME IS MONEY</small></div><button class="collapse-button" type="button" aria-label="收起侧边栏">▣</button></div>
+  <aside class="sidebar" :class="{ collapsed }">
+    <div class="brand-row"><div class="brand-icon">⌁</div><div class="brand-copy"><strong>MoneyDance</strong><small>TIME IS MONEY</small></div><button class="collapse-button" type="button" aria-label="收起侧边栏" @click="toggleCollapsed">▣</button></div>
     <nav class="side-nav" aria-label="MoneyDance 主导航">
       <div v-for="group in navGroups" :key="group.title" class="nav-group">
         <span class="nav-group-title">{{ group.title }}</span>
         <button v-for="item in group.items" :key="item[0]" class="nav-item" :class="{ active: activeRoute === item[0] }" type="button" @click="navigate(item[0])">
-          <span class="nav-item-icon">{{ item[2] }}</span><span>{{ item[1] }}</span><i v-if="activeRoute === item[0]">•</i>
+          <span class="nav-item-icon">{{ item[2] }}</span><span class="nav-item-label">{{ item[1] }}</span><i v-if="activeRoute === item[0]">•</i>
         </button>
       </div>
     </nav>
